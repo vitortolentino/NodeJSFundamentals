@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import TransactionsRepository from '../repositories/TransactionsRepository';
-// import CreateTransactionService from '../services/CreateTransactionService';
+import CreateTransactionService from '../services/CreateTransactionService';
 
 const transactionRouter = Router();
 
@@ -24,17 +24,16 @@ transactionRouter.get('/', (request, response) => {
 transactionRouter.post('/', (request, response) => {
   try {
     const { title, value, type } = request.body;
-    const { total } = transactionsRepository.getBalance();
 
-    const shouldNotCreateTransaction = type === 'outcome' && value > total;
+    const createTransaction = new CreateTransactionService(
+      transactionsRepository,
+    );
 
-    if (shouldNotCreateTransaction) {
-      return response
-        .status(400)
-        .send({ error: "The value can't be greater than income value" });
-    }
-
-    const transaction = transactionsRepository.create({ title, value, type });
+    const transaction = createTransaction.execute({
+      title,
+      value,
+      type,
+    });
 
     return response.json(transaction);
   } catch (err) {
